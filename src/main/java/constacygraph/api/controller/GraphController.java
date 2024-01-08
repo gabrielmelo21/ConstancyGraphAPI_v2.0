@@ -1,6 +1,7 @@
 package constacygraph.api.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import constacygraph.api.models.Graphs;
 import constacygraph.api.service.GraphService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,10 @@ public class GraphController {
     @PutMapping("/{objetivo}")
     public ResponseEntity<String> updateData(@PathVariable String objetivo){
         return service.updateFrequency(objetivo);
+    }
+    @PutMapping("/UpdateById/{id}")
+    public ResponseEntity<String> updateDataById(@PathVariable String id){
+        return service.updateFrequencyById(id);
     }
 
 

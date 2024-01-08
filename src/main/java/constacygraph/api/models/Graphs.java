@@ -2,10 +2,14 @@ package constacygraph.api.models;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "graphs")
 public class Graphs {
     @Id
@@ -19,10 +23,12 @@ public class Graphs {
     private Boolean status;
 
     @Column(name = "numeroDoDia", nullable = false)
-    private Long numeroDoDia;
+    private int numeroDoDia;
 
     @Column(name = "objetivo", nullable = false)
     private String objetivo;
+
+
 
 
 }

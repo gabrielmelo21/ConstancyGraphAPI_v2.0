@@ -1,24 +1,20 @@
 package constacygraph.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import constacygraph.api.models.Graphs;
 import constacygraph.api.repository.GraphRepository;
-import org.hibernate.graph.Graph;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class GraphService {
@@ -53,42 +49,32 @@ public class GraphService {
      */
 
     public ResponseEntity<String> newGraph(String objetivo) {
-        try {
-            // Ler o JSON do arquivo calendar_empty.json = Mockup para criar Json
-            File jsonFile = new File("src/main/resources/static/calendar_empty.json");
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(jsonFile);
+
+        ArrayList<Graphs> diaDoAnoArrayList = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM");
+
+        for (int i = 1; i <= 365; i++) {
+            Calendar calendar = Calendar.getInstance();
+
+            // Definir o ano para 2024 (ou o ano desejado)
+            calendar.set(Calendar.YEAR, 2024);
+
+            // Definir o dia do ano
+            calendar.set(Calendar.DAY_OF_YEAR, i);
+
+            // Obter a data formatada
+            String dataFormatada = dateFormat.format(calendar.getTime());
 
 
-            List<Graphs> graphsList = new ArrayList<>();
-
-            // Adicionar o objetivo a todos os objetos no JSON
-            for (JsonNode node : jsonNode) {
-                ((ObjectNode) node).put("objetivo", objetivo);
-
-                Graphs graphs = objectMapper.treeToValue(node, Graphs.class);
-                graphsList.add(graphs);
-
-
-            }
-
-            // Salvar o JSON modificado de volta ao arquivo - cria um arquivo json, que pode ser descartado
-            //objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File("src/main/resources/static/calendar_modified.json"), jsonNode);
-
-
-            // salvar esse arquivo
-            repository.saveAll(graphsList);
-
-
-
-            return new ResponseEntity<>("Novo Graph criado com sucesso", HttpStatus.CREATED);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Erro ao criar o novo Graph", HttpStatus.INTERNAL_SERVER_ERROR);
+            Graphs diaDoAno = new Graphs(null,dataFormatada, false, i, objetivo);
+            diaDoAnoArrayList.add(diaDoAno);
         }
 
+        repository.saveAll(diaDoAnoArrayList);
+
+        return new ResponseEntity<>("Novo Graph criado com sucesso", HttpStatus.CREATED);
     }
+
 
     public ResponseEntity<List<Graphs>> listAllGraphs(){
         List<Graphs> list =  repository.findAll();
@@ -158,8 +144,26 @@ public class GraphService {
 
 
 
+    public ResponseEntity<String> updateFrequencyById(String id) {
+        Optional<Graphs> optionalGraph = repository.findById(Long.valueOf(id));
 
+        if (optionalGraph.isPresent()) {
+            Graphs graph = optionalGraph.get();
+            Boolean statusValue = graph.getStatus();
 
+            if (!statusValue) {
+                graph.setStatus(true);
+                repository.save(graph); // Salva a entidade atualizada no repositório
+                return ResponseEntity.status(HttpStatus.OK).body("Atualizado com sucesso");
+            } else {
+                graph.setStatus(false);
+                repository.save(graph); // Salva a entidade atualizada no repositório
+                return ResponseEntity.status(HttpStatus.OK).body("Atualizado com sucesso");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao atualizar, tente novamente.");
+        }
+    }
 
 
 }
